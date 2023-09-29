@@ -10,6 +10,8 @@ enum TokenType {
     EQUAL, EQUAL_EQUAL,
     GREATER, GREATER_EQUAL,
     LESS, LESS_EQUAL,
+    // Ternary tokens
+    QUESTION, COLON,
     // Literals.
     IDENTIFIER, STRING, NUMBER,
     // Keywords.

@@ -12,6 +12,7 @@ class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 1;
+    private boolean TernaryToken = false;
 
     private static final Map<String, TokenType> keywords;
     static {
@@ -50,6 +51,7 @@ class Scanner {
 
     private void scanToken() {
         char c = advance();
+        int tmp = current;
         switch (c) {
             case '(':
                 addToken(LEFT_PAREN);
@@ -103,9 +105,9 @@ class Scanner {
                     while (!isAtEnd()) {
                         if (peek() != '*') {
                             char ch = advance();
-                            if(ch == '\n')
+                            if (ch == '\n')
                                 line++;
-                        } else if (peek() == '*'&&peekNext() == '/') {
+                        } else if (peek() == '*' && peekNext() == '/') {
                             // 消耗 * 和 /
                             advance();
                             advance();
@@ -127,6 +129,26 @@ class Scanner {
                 break;
             case '"':
                 string();
+                break;
+            case '?': // 三元运算符Token支持
+                while (peekLine(tmp) != '\n' && tmp <= source.length()) {
+                    if (peekLine(tmp) == ':') {
+                        addToken(QUESTION);
+                        TernaryToken = true;
+                        break;
+                    }
+                    tmp += 1;
+                }
+                if(!TernaryToken)
+                    Lox.error(line, "Unexpected character.");
+                break;
+            case ':':
+                if (TernaryToken) {
+                    addToken(COLON);
+                    TernaryToken = false; // 重置标记
+                } else {
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
             default:
                 if (isDigit(c)) {
@@ -194,6 +216,12 @@ class Scanner {
         }
         addToken(NUMBER,
                 Double.parseDouble(source.substring(start, current)));
+    }
+
+    private char peekLine(int pos) {
+        if(pos >= source.length())
+            return '\0';
+        return source.charAt(pos);
     }
 
     private char peekNext() {
